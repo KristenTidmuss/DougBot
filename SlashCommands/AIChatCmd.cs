@@ -13,7 +13,7 @@ public class AIChatCmd : InteractionModuleBase
     public async Task AIChat()
     {
         //Get chat to send
-        var messages = await Context.Channel.GetMessagesAsync(50).FlattenAsync();
+        var messages = await Context.Channel.GetMessagesAsync(20).FlattenAsync();
         var queryString = "This is a discord chat conversation\\n";
         foreach (var message in messages.OrderBy(m => m.Timestamp))
             queryString += $"{message.Author.Username}: {message.Content}\\n";
@@ -24,7 +24,6 @@ public class AIChatCmd : InteractionModuleBase
         //remove any text after the last instance of :
         var lastColon = queryString.LastIndexOf(':');
         queryString = queryString.Substring(0, lastColon);
-        Console.WriteLine(queryString);
         //Query API
         using var httpClient = new HttpClient();
         using var request = new HttpRequestMessage(new HttpMethod("POST"), "https://api.novelai.net/ai/generate");
@@ -34,7 +33,6 @@ public class AIChatCmd : InteractionModuleBase
         request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
         var response = await httpClient.SendAsync(request);
         var responseString = await response.Content.ReadAsStringAsync();
-        Console.WriteLine(responseString);
         dynamic json = JToken.Parse(responseString);
         string output = json.output;
         //Loop every line in the output, if it contains a : then send anything after it and if not just send the message
