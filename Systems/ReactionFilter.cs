@@ -8,8 +8,13 @@ public class ReactionFilter
 {
     public ReactionFilter(DiscordSocketClient client)
     {
-        client.ReactionAdded += FilterReactions;
+        client.ReactionAdded += HandleReaction;
         Console.WriteLine("Reaction Filter System Initialized");
+    }
+
+    private async Task HandleReaction(Cacheable<IUserMessage, ulong> arg1, Cacheable<IMessageChannel, ulong> arg2, SocketReaction arg3)
+    {
+        await FilterReactions(arg1, arg2, arg3);
     }
 
     private async Task FilterReactions(Cacheable<IUserMessage, ulong> Message,

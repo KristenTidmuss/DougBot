@@ -25,7 +25,9 @@ public class Program
         Setting.UpdateLastChecked(DateTime.UtcNow);
         var settings = Setting.GetSettings();
         //Start discord bot
-        _Client = new DiscordSocketClient();
+        var config = new DiscordSocketConfig();
+        config.GatewayIntents = GatewayIntents.All;
+        _Client = new DiscordSocketClient(config);
         _Client.Log += Log;
         _Client.Ready += Ready;
         await _Client.LoginAsync(TokenType.Bot, settings.Token);
