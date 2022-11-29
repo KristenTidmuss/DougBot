@@ -22,7 +22,6 @@ public class Program
     private async Task MainAsync()
     {
         //Load Settings
-        Setting.UpdateLastChecked(DateTime.UtcNow);
         var settings = Setting.GetSettings();
         //Start discord bot
         var config = new DiscordSocketConfig();
