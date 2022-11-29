@@ -12,9 +12,10 @@ public class ReactionFilter
         Console.WriteLine("Reaction Filter System Initialized");
     }
 
-    private async Task HandleReaction(Cacheable<IUserMessage, ulong> arg1, Cacheable<IMessageChannel, ulong> arg2, SocketReaction arg3)
+    private Task HandleReaction(Cacheable<IUserMessage, ulong> arg1, Cacheable<IMessageChannel, ulong> arg2, SocketReaction arg3)
     {
-        await FilterReactions(arg1, arg2, arg3);
+        FilterReactions(arg1, arg2, arg3);
+        return Task.CompletedTask;
     }
 
     private async Task FilterReactions(Cacheable<IUserMessage, ulong> Message,
