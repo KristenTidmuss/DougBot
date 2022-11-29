@@ -16,18 +16,16 @@ public class AIChatCmd : InteractionModuleBase
         //Get chat to send
         var messages = await Context.Channel.GetMessagesAsync(10).FlattenAsync();
         var queryString = "This is a discord chat conversation\\n";
+        //Ignore embeds and media
         foreach (var message in messages.Where(m => m.Embeds.Count == 0 && m.Attachments.Count == 0).OrderBy(m => m.Timestamp))
         {
             //replace any instance of blockedChars in message.content
-            var content = message.Content;
-            foreach (var c in blockedChars)
-            {
-                content = content.Replace(c, ' ');
-            }
+            var content = blockedChars.Aggregate(message.Content, (current, c) => current.Replace(c, ' '));
+            //If hits the char limit then stop
             if(queryString.Length + content.Length > 2000) {break;}
             queryString += content + "\\n";
         }
-        //clean string and trim
+        await RespondAsync("*WAHAHA Is Typing*");
         //Query API
         using var httpClient = new HttpClient();
         using var request = new HttpRequestMessage(new HttpMethod("POST"), "https://api.novelai.net/ai/generate");
@@ -39,9 +37,8 @@ public class AIChatCmd : InteractionModuleBase
         var responseString = await response.Content.ReadAsStringAsync();
         dynamic json = JToken.Parse(responseString);
         string output = json.output;
-        await RespondAsync("Responding: If nothing is sent to chat there was nothing legible from the AI", ephemeral: true);
-        string responseMessage = "";
         //Loop every line in the output, if it contains a : then send anything after it and if not just send the message
+        var responseMessage = "";
         foreach (var line in output.Split("\n"))
             if (line.Contains(":"))
             {
@@ -52,6 +49,6 @@ public class AIChatCmd : InteractionModuleBase
             {
                 responseMessage += line + Environment.NewLine;
             }
-        await Context.Channel.SendMessageAsync(responseMessage);
+        await ModifyOriginalResponseAsync(properties => properties.Content = responseMessage);
     }
 }
