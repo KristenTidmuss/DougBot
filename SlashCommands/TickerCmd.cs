@@ -22,13 +22,13 @@ public class TickerCmd : InteractionModuleBase
         switch (action)
         {
             case "add":
-                var newChannel = await Context.Guild.CreateVoiceChannelAsync(name, x => { x.UserLimit = 1; });
+                var newChannel = await Context.Guild.CreateVoiceChannelAsync(name, x => { x.Bitrate = 8000; });
                 //Deny access to the channel for the 0 role
                 await newChannel.AddPermissionOverwriteAsync(Context.Guild.EveryoneRole,
                     new OverwritePermissions(viewChannel: PermValue.Allow, connect: PermValue.Deny));
                 break;
             case "update":
-                if (channel.UserLimit != 1)
+                if (channel.Bitrate != 8000)
                 {
                     await RespondAsync("Invalid channel", ephemeral: true);
                     return;
@@ -37,7 +37,7 @@ public class TickerCmd : InteractionModuleBase
                 await channel.ModifyAsync(x => x.Name = name);
                 break;
             case "remove":
-                if (channel.UserLimit != 1)
+                if (channel.Bitrate != 8000)
                 {
                     await RespondAsync("Invalid channel", ephemeral: true);
                     return;
