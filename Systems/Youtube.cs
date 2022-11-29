@@ -55,7 +55,7 @@ public class Youtube
                 }
             }
             await _Client.SetStatusAsync(UserStatus.DoNotDisturb);
-            settings.YoutubeLastCheck = DateTime.UtcNow;
+            Setting.UpdateLastChecked(DateTime.UtcNow);
         }
         catch (Exception ex)
         {
