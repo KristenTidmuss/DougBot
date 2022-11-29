@@ -30,8 +30,6 @@ public class Youtube
         {
             await _Client.SetStatusAsync(UserStatus.Idle);
             var settings = Setting.GetSettings();
-            settings.YoutubeLastCheck = DateTime.Now;
-            settings.UpdateSettings();
             var channels = settings.YoutubeChannels.Split(Environment.NewLine);
             var youtube = new YoutubeClient();
             foreach (var channel in channels)
@@ -42,7 +40,7 @@ public class Youtube
                 var uploads = await youtube.Channels.GetUploadsAsync(ytChannel.Id);
                 var lastUpload = uploads.FirstOrDefault();
                 var video = await youtube.Videos.GetAsync(lastUpload.Id);
-                if (video.UploadDate > settings.YoutubeLastCheck)
+                if (video.UploadDate.UtcDateTime > settings.YoutubeLastCheck)
                 {
                     var embed = new EmbedBuilder()
                         .WithAuthor(ytChannel.Title, ytChannel.Thumbnails[0].Url, ytChannel.Url)
@@ -57,6 +55,7 @@ public class Youtube
                 }
             }
             await _Client.SetStatusAsync(UserStatus.DoNotDisturb);
+            settings.YoutubeLastCheck = DateTime.UtcNow;
         }
         catch (Exception ex)
         {

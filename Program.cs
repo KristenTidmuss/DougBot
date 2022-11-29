@@ -22,10 +22,8 @@ public class Program
     private async Task MainAsync()
     {
         //Load Settings
-        Setting.Initialise();
+        Setting.UpdateLastChecked(DateTime.UtcNow);
         var settings = Setting.GetSettings();
-        settings.YoutubeLastCheck = DateTime.UtcNow;
-        settings.UpdateSettings();
         //Start discord bot
         _Client = new DiscordSocketClient();
         _Client.Log += Log;

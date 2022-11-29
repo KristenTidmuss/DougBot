@@ -1,5 +1,3 @@
-using LiteDB;
-
 namespace DougBot.Models;
 
 public class Queue
@@ -12,35 +10,33 @@ public class Queue
 
     public static void Create(string type, string data, DateTime dueAt)
     {
-        using var db = new LiteDatabase(Database.GetPath());
-        var col = db.GetCollection<Queue>("customers");
-        col.Insert(new Queue
+        using var db = new Database.DougBotContext();
+        db.Queues.Add(new Queue
         {
             Type = type,
             Data = data,
             CreatedAt = DateTime.UtcNow,
             DueAt = dueAt
         });
+        db.SaveChanges();
     }
 
     public static List<Queue> GetAll()
     {
-        using var db = new LiteDatabase(Database.GetPath());
-        var col = db.GetCollection<Queue>("customers");
-        return col.FindAll().ToList();
+        using var db = new Database.DougBotContext();
+        return db.Queues.ToList();
     }
 
     public static List<Queue> GetDue()
     {
-        using var db = new LiteDatabase(Database.GetPath());
-        var col = db.GetCollection<Queue>("customers");
-        return col.Find(c => c.DueAt < DateTime.UtcNow).ToList();
+        using var db = new Database.DougBotContext();
+        return db.Queues.Where(c => c.DueAt < DateTime.UtcNow).ToList();
     }
 
     public static void Remove(Queue queue)
     {
-        using var db = new LiteDatabase(Database.GetPath());
-        var col = db.GetCollection<Queue>("customers");
-        col.Delete(queue.Id);
+        using var db = new Database.DougBotContext();
+        db.Queues.Remove(queue);
+        db.SaveChanges();
     }
 }

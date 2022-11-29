@@ -12,9 +12,7 @@ public class SetStatusCmd : InteractionModuleBase
     public async Task SetStatus([Summary(description: "What should the status be")] string status)
     {
         //Set the bots status
-        var settings = Setting.GetSettings();
-        settings.statusMessage = status;
-        settings.UpdateSettings();
+        Setting.UpdateStatusMessage(status);
         await RespondAsync($"Status set to `{status}` and will update within a minute");
     }
 }

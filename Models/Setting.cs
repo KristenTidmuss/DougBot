@@ -1,5 +1,3 @@
-using LiteDB;
-
 namespace DougBot.Models;
 
 public class Setting
@@ -15,44 +13,43 @@ public class Setting
     public string YoutubeChannels { get; set; }
     public DateTime YoutubeLastCheck { get; set; }
 
-    public static void Initialise()
-    {
-        using var db = new LiteDatabase(Database.GetPath());
-        var col = db.GetCollection<Setting>("settings");
-        //Check if collection is empty or more than one
-        if (col.Count() != 1)
-        {
-            col.DeleteAll();
-            Console.WriteLine("Please enter your bot token:");
-            var token = Console.ReadLine();
-            col.Insert(new Setting
-            {
-                Token = token,
-                //Defaults for DougDoug discord
-                guildID = "567141138021089308",
-                statusMessage = "^_^",
-                reactionFilterEmotes = "👍,👎",
-                reactionFilterChannels = "731407385624838197,567144073857859609,880127379119415306",
-                reactionFilterRole = "988901586669551687",
-                YoutubePostChannel = "567144073857859609",
-                YoutubeChannels =
-                    "@DougDougW;720717475901341726\n@dougdougdoug;720717475901341726\n@DougDougVODChannel;731411366799343707\n@@friendstildeath3427;934873771406413885",
-                YoutubeLastCheck = DateTime.Now
-            });
-        }
-    }
-
     public static Setting GetSettings()
     {
-        using var db = new LiteDatabase(Database.GetPath());
-        var col = db.GetCollection<Setting>("settings");
-        return col.FindById(1);
+        using var db = new Database.DougBotContext();
+        return db.Settings.FirstOrDefault();
     }
 
-    public void UpdateSettings()
+    public static void UpdateReactionFilter(string reactionFilterEmotes, string reactionFilterChannels, string reactionFilterRole)
     {
-        using var db = new LiteDatabase(Database.GetPath());
-        var col = db.GetCollection<Setting>("settings");
-        col.Update(this);
+        using var db = new Database.DougBotContext();
+        var settings = db.Settings.FirstOrDefault();
+        settings.reactionFilterEmotes = reactionFilterEmotes;
+        settings.reactionFilterChannels = reactionFilterChannels;
+        settings.reactionFilterRole = reactionFilterRole;
+        db.SaveChanges();
+    }
+    public static void UpdateYoutubeFeed(string YoutubePostChannel, string YoutubeChannels)
+    {
+        using var db = new Database.DougBotContext();
+        var settings = db.Settings.FirstOrDefault();
+        settings.YoutubePostChannel = YoutubePostChannel;
+        settings.YoutubeChannels = YoutubeChannels;
+        db.SaveChanges();
+    }
+
+    public static void UpdateStatusMessage(string statusMessage)
+    {
+        using var db = new Database.DougBotContext();
+        var settings = db.Settings.FirstOrDefault();
+        settings.statusMessage = statusMessage;
+        db.SaveChanges();
+    }
+    
+    public static void UpdateLastChecked(DateTime lastChecked)
+    {
+        using var db = new Database.DougBotContext();
+        var settings = db.Settings.FirstOrDefault();
+        settings.YoutubeLastCheck = lastChecked;
+        db.SaveChanges();
     }
 }

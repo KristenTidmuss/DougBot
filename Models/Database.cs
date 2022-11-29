@@ -1,12 +1,15 @@
-using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 
 namespace DougBot.Models;
 
 public class Database
 {
-    public static string GetPath()
+    public class DougBotContext : DbContext
     {
-        var path = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
-        return Path.Join(path, "database.db");
+        public DbSet<Setting> Settings { get; set; }
+        public DbSet<Queue> Queues { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+            => optionsBuilder.UseNpgsql("Host=192.168.1.252;Database=DougBot;Username=postgres;Password=88PVVel6QHqk");
     }
 }

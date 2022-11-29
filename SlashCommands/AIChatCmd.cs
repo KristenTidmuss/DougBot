@@ -12,18 +12,22 @@ public class AIChatCmd : InteractionModuleBase
     [DefaultMemberPermissions(GuildPermission.ModerateMembers)]
     public async Task AIChat()
     {
-        //Get chat to send
-        var messages = await Context.Channel.GetMessagesAsync(20).FlattenAsync();
-        var queryString = "This is a discord chat conversation\\n";
-        foreach (var message in messages.OrderBy(m => m.Timestamp))
-            queryString += $"{message.Author.Username}: {message.Content}\\n";
-        //clean string and trim
         var blockedChars = "/#?&=;+!@£$%^*(){}[]|<>,~`\"'";
-        foreach (var c in blockedChars) queryString = queryString.Replace(c.ToString(), "");
-        if (queryString.Length > 2000) queryString = queryString.Substring(0, 2000);
-        //remove any text after the last instance of :
-        var lastColon = queryString.LastIndexOf(':');
-        queryString = queryString.Substring(0, lastColon);
+        //Get chat to send
+        var messages = await Context.Channel.GetMessagesAsync(10).FlattenAsync();
+        var queryString = "This is a discord chat conversation\\n";
+        foreach (var message in messages.Where(m => m.Embeds.Count == 0 && m.Attachments.Count == 0).OrderBy(m => m.Timestamp))
+        {
+            //replace any instance of blockedChars in message.content
+            var content = message.Content;
+            foreach (var c in blockedChars)
+            {
+                content = content.Replace(c, ' ');
+            }
+            if(queryString.Length + content.Length > 2000) {break;}
+            queryString += content + "\\n";
+        }
+        //clean string and trim
         //Query API
         using var httpClient = new HttpClient();
         using var request = new HttpRequestMessage(new HttpMethod("POST"), "https://api.novelai.net/ai/generate");

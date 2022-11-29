@@ -8,10 +8,7 @@ public class YoutubeInteraction : InteractionModuleBase
     [ModalInteraction("settingsYoutubeFeed")]
     public async Task ModalResponse(YoutubeModal modal)
     {
-        var settings = Setting.GetSettings();
-        settings.YoutubePostChannel = modal.YoutubePostChannel;
-        settings.YoutubeChannels = modal.youtubeChannels;
-        settings.UpdateSettings();
+        Setting.UpdateYoutubeFeed(modal.YoutubePostChannel, modal.youtubeChannels);
         await RespondAsync("Settings Saved", ephemeral: true);
     }
 }
