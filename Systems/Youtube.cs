@@ -21,6 +21,7 @@ public class Youtube
             Enabled = true
         };
         timerThirtyMinute.Elapsed += CheckUploads;
+        Console.WriteLine("Youtube System Initialized");
     }
 
     private async void CheckUploads(object? sender, ElapsedEventArgs elapsedEventArgs)
@@ -29,6 +30,8 @@ public class Youtube
         {
             await _Client.SetStatusAsync(UserStatus.Idle);
             var settings = Setting.GetSettings();
+            settings.YoutubeLastCheck = DateTime.Now;
+            settings.UpdateSettings();
             var channels = settings.YoutubeChannels.Split(Environment.NewLine);
             var youtube = new YoutubeClient();
             foreach (var channel in channels)
@@ -53,9 +56,6 @@ public class Youtube
                         allowedMentions: AllowedMentions.All);
                 }
             }
-
-            settings.YoutubeLastCheck = DateTime.Now;
-            settings.UpdateSettings();
             await _Client.SetStatusAsync(UserStatus.DoNotDisturb);
         }
         catch (Exception ex)

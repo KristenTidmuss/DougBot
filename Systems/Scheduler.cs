@@ -19,6 +19,7 @@ public class Scheduler
             Enabled = true
         };
         timerMinute.Elapsed += Minute;
+        Console.WriteLine("Scheduler System Initialized");
     }
 
     private async void Minute(object? sender, ElapsedEventArgs e)
