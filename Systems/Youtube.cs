@@ -17,7 +17,6 @@ public class Youtube
         _Client = client;
         var timerThirtyMinute = new Timer
         {
-            //Interval = 600000,
             Interval = 60000,
             Enabled = true
         };
@@ -62,7 +61,6 @@ public class Youtube
         catch (Exception ex)
         {
             Console.WriteLine(ex.ToString());
-            throw;
         }
     }
 }

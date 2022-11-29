@@ -15,6 +15,6 @@ public class SetStatusCmd : InteractionModuleBase
         var settings = Setting.GetSettings();
         settings.statusMessage = status;
         settings.UpdateSettings();
-        await RespondAsync($"Status set to {status} and will update within a minute");
+        await RespondAsync($"Status set to `{status}` and will update within a minute");
     }
 }

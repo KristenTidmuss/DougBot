@@ -35,16 +35,19 @@ public class AIChatCmd : InteractionModuleBase
         var responseString = await response.Content.ReadAsStringAsync();
         dynamic json = JToken.Parse(responseString);
         string output = json.output;
+        await RespondAsync("Responding");
+        string responseMessage = "";
         //Loop every line in the output, if it contains a : then send anything after it and if not just send the message
         foreach (var line in output.Split("\n"))
             if (line.Contains(":"))
             {
                 var split = line.Split(":");
-                await Context.Channel.SendMessageAsync($"{split[1]}");
+                responseMessage += split[1] + Environment.NewLine;
             }
             else if (line != "")
             {
-                await Context.Channel.SendMessageAsync($"{line}");
+                responseMessage += line + Environment.NewLine;
             }
+        await Context.Channel.SendMessageAsync(responseMessage);
     }
 }

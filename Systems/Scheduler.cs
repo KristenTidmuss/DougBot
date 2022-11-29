@@ -25,7 +25,6 @@ public class Scheduler
     {
         try
         {
-            await _Client.SetStatusAsync(UserStatus.Idle);
             var settings = Setting.GetSettings();
             await _Client.SetGameAsync(settings.statusMessage);
             var pendingQueues = Queue.GetDue();
@@ -38,11 +37,8 @@ public class Scheduler
                         await RemoveRole(ulong.Parse(para[0]), ulong.Parse(para[1]), ulong.Parse(para[2]));
                         break;
                 }
-
                 Queue.Remove(queue);
             }
-
-            await _Client.SetStatusAsync(UserStatus.DoNotDisturb);
         }
         catch (Exception ex)
         {
