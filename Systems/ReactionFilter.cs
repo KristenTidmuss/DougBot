@@ -26,9 +26,8 @@ public class ReactionFilter
                 && !guild.Emotes.ToList().Contains(Reaction.Emote)
                 && settings.reactionFilterChannels.Split(',').Contains(Channel.Value.Id.ToString()))
             {
-                await message.RemoveReactionAsync(
+                await message.RemoveAllReactionsForEmoteAsync(
                     Reaction.Emote,
-                    Reaction.User.Value,
                     RequestOptions.Default);
                 //Assign role
                 await user.AddRoleAsync(Convert.ToUInt64(settings.reactionFilterRole),
