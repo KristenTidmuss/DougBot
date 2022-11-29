@@ -32,9 +32,11 @@ public class ReactionFilter
                 && !guild.Emotes.ToList().Contains(Reaction.Emote)
                 && settings.reactionFilterChannels.Split(',').Contains(Channel.Value.Id.ToString()))
             {
-                await message.RemoveAllReactionsForEmoteAsync(
-                    Reaction.Emote,
-                    RequestOptions.Default);
+                //Only remove if it still exists
+                if(message.Reactions.Keys.Contains(Reaction.Emote))
+                {
+                    await message.RemoveAllReactionsForEmoteAsync(Reaction.Emote);
+                }
                 //Assign role
                 await user.AddRoleAsync(Convert.ToUInt64(settings.reactionFilterRole),
                     new RequestOptions { AuditLogReason = "Reaction Filter" });
