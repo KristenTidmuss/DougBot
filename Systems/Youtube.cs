@@ -4,7 +4,6 @@ using Discord.WebSocket;
 using DougBot.Models;
 using YoutubeExplode;
 using YoutubeExplode.Common;
-using Timer = System.Timers.Timer;
 
 namespace DougBot.Systems;
 
@@ -15,12 +14,12 @@ public class Youtube
     public Youtube(DiscordSocketClient client)
     {
         _Client = client;
-        var timerThirtyMinute = new Timer
+        var timer = new System.Timers.Timer
         {
             Interval = 600000,
             Enabled = true
         };
-        timerThirtyMinute.Elapsed += CheckUploads;
+        timer.Elapsed += CheckUploads;
         Console.WriteLine("Youtube System Initialized");
     }
 

@@ -1,3 +1,4 @@
+using System.Timers;
 using Discord;
 using Discord.WebSocket;
 using DougBot.Models;
@@ -6,43 +7,61 @@ namespace DougBot.Systems;
 
 public class ReactionFilter
 {
+    private readonly DiscordSocketClient _Client;
+
     public ReactionFilter(DiscordSocketClient client)
     {
-        client.ReactionAdded += HandleReaction;
-        Console.WriteLine("Reaction Filter System Initialized");
+        _Client = client;
+        var recentTimer = new System.Timers.Timer
+        {
+            Interval = 10000,
+            Enabled = true
+        };
+        recentTimer.Elapsed += HandleRecent;
+        
+        var olderTimer = new System.Timers.Timer
+        {
+            Interval = 1800000,
+            Enabled = true
+        };
+        olderTimer.Elapsed += HandleOld;
+        Console.WriteLine("Youtube System Initialized");
     }
 
-    private Task HandleReaction(Cacheable<IUserMessage, ulong> arg1, Cacheable<IMessageChannel, ulong> arg2, SocketReaction arg3)
+    private async void HandleRecent(object? sender, ElapsedEventArgs elapsedEventArgs)
     {
-        FilterReactions(arg1, arg2, arg3);
-        return Task.CompletedTask;
+        await FilterReactions(5);
+    }
+    private async void HandleOld(object? sender, ElapsedEventArgs elapsedEventArgs)
+    {
+        await FilterReactions(50);
     }
 
-    private async Task FilterReactions(Cacheable<IUserMessage, ulong> Message,
-        Cacheable<IMessageChannel, ulong> Channel, SocketReaction Reaction)
+    private async Task FilterReactions(int messageCount)
     {
         try
         {
             var settings = Setting.GetSettings();
-            //get guild and user
-            var guild = ((SocketGuildChannel)Channel.Value).Guild;
-            var message = await Message.GetOrDownloadAsync();
-            var user = (SocketGuildUser)Reaction.User.Value;
-            if (!settings.reactionFilterEmotes.Split(',').Contains(Reaction.Emote.Name)
-                && !guild.Emotes.ToList().Contains(Reaction.Emote)
-                && settings.reactionFilterChannels.Split(',').Contains(Channel.Value.Id.ToString()))
+            var guild = _Client.GetGuild(Convert.ToUInt64(settings.guildID));
+            var guildEmotes = await guild.GetEmotesAsync();
+            var guildEmoteNames = guildEmotes.Select(e => e.Name);
+            var filterEmotes = settings.reactionFilterEmotes.Split(',');
+            foreach (var id in settings.reactionFilterChannels.Split(','))
             {
-                //Only remove if it still exists
-                if(message.Reactions.Keys.Contains(Reaction.Emote))
+                //Get the last messageCount messages from the channel
+                var channel = (SocketTextChannel)await _Client.GetChannelAsync(ulong.Parse(id));
+                var messages = await channel.GetMessagesAsync(messageCount).FlattenAsync();
+                foreach (var message in messages)
                 {
-                    await message.RemoveAllReactionsForEmoteAsync(Reaction.Emote);
+                    //Get reactions on the message contained in guildEmotes or filterEmotes
+                    var reactions = message.Reactions
+                        .Where(r => !guildEmoteNames.Contains(r.Key.Name) && !filterEmotes.Contains(r.Key.Name));
+                    //remove those reactions from the message
+                    foreach (var react in reactions)
+                    {
+                        await message.RemoveAllReactionsForEmoteAsync(react.Key);
+                    }
                 }
-                //Assign role
-                await user.AddRoleAsync(Convert.ToUInt64(settings.reactionFilterRole),
-                    new RequestOptions { AuditLogReason = "Reaction Filter" });
-                //Schedule role removal
-                Queue.Create("RemoveRole", guild.Id + ";" + user.Id + ";" + settings.reactionFilterRole,
-                    DateTime.UtcNow.AddDays(5));
             }
         }
         catch (Exception ex)

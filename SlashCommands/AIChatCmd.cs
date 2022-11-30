@@ -15,7 +15,7 @@ public class AIChatCmd : InteractionModuleBase
         await RespondAsync("Processing Chat", ephemeral: true);
         var blockedChars = "/#?&=;+!@£$%^*(){}[]|<>,~`\"'";
         //Get chat to send
-        var messages = await Context.Channel.GetMessagesAsync(10).FlattenAsync();
+        var messages = await Context.Channel.GetMessagesAsync(30).FlattenAsync();
         var queryString = "This is a discord chat conversation\\n";
         //Ignore embeds and media
         foreach (var message in messages.Where(m => m.Embeds.Count == 0 && m.Attachments.Count == 0).OrderBy(m => m.Timestamp))
