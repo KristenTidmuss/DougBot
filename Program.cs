@@ -13,6 +13,8 @@ public class Program
     private static InteractionService _Service;
     private static IServiceProvider _ServiceProvider;
     private static DiscordSocketClient _Client;
+    private bool _FirstStart = true;
+
 
     private static Task Main()
     {
@@ -31,6 +33,10 @@ public class Program
         _Client.Ready += Ready;
         await _Client.LoginAsync(TokenType.Bot, settings.Token);
         await _Client.StartAsync();
+        //Register Plugins
+        var reactionFilter = new ReactionFilter(_Client);
+        var youtube = new Youtube(_Client);
+        var scheduler = new Scheduler(_Client);
         //Block Task
         await Task.Delay(-1);
     }
@@ -57,9 +63,6 @@ public class Program
                 await context.Interaction.RespondAsync(result.ErrorReason, ephemeral: true);
             }
         };
-        var reactionFilter = new ReactionFilter(_Client);
-        var youtube = new Youtube(_Client);
-        var scheduler = new Scheduler(_Client);
         //Status
         await _Client.SetStatusAsync(UserStatus.DoNotDisturb);
     }
