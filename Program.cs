@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Discord;
+using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
 using DougBot.Models;
@@ -45,12 +46,17 @@ public class Program
     {
         //Register Commands
         _Service = new InteractionService(_Client.Rest);
+        _Service.Log += Log;
         await _Service.AddModulesAsync(Assembly.GetEntryAssembly(), _ServiceProvider);
         await _Service.RegisterCommandsGloballyAsync();
         _Client.InteractionCreated += async interaction =>
         {
             var ctx = new SocketInteractionContext(_Client, interaction);
             await _Service.ExecuteCommandAsync(ctx, _ServiceProvider);
+            //Log command ran
+            var cmd = (SocketSlashCommand)interaction;
+            await Log(new LogMessage(LogSeverity.Info, "Command", 
+                $"Command {cmd.Data.Name} ran by {cmd.User.Username}#{cmd.User.Discriminator} in {cmd.Channel.Name}"));
         };
         _Service.SlashCommandExecuted += async (command, context, result) =>
         {
@@ -69,7 +75,21 @@ public class Program
 
     private Task Log(LogMessage msg)
     {
-        Console.WriteLine(msg.ToString());
+        if (msg.Exception is CommandException cmdException)
+        {
+            Console.WriteLine($"[Command/{msg.Severity}] {cmdException.Command.Name}"
+                              + $" failed to execute in {cmdException.Context.Channel} by user {cmdException.Context.User.Username}.");
+            Console.WriteLine(cmdException);
+        }
+        else if (msg.Source == "Command")
+        {
+            Console.WriteLine($"[Command/{msg.Severity}] {DateTime.UtcNow.ToString("h:mm:ss")} {msg.Message}");
+        }
+        else
+        {
+            Console.WriteLine($"[General/{msg.Severity}] {msg}");
+
+        }
         return Task.CompletedTask;
     }
 }
