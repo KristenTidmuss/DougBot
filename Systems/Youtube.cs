@@ -17,7 +17,7 @@ public class Youtube
         _Client = client;
         var timerThirtyMinute = new Timer
         {
-            Interval = 60000,
+            Interval = 600000,
             Enabled = true
         };
         timerThirtyMinute.Elapsed += CheckUploads;
