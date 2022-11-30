@@ -12,6 +12,8 @@ public class AIChatCmd : InteractionModuleBase
     [DefaultMemberPermissions(GuildPermission.ModerateMembers)]
     public async Task AIChat()
     {
+        await RespondAsync("Processing Chat", ephemeral: true);
+
         var blockedChars = "/#?&=;+!@£$%^*(){}[]|<>,~`\"'";
         //Get chat to send
         var messages = await Context.Channel.GetMessagesAsync(10).FlattenAsync();
@@ -25,7 +27,6 @@ public class AIChatCmd : InteractionModuleBase
             if(queryString.Length + content.Length > 2000) {break;}
             queryString += content + "\\n";
         }
-        await RespondAsync("*WAHAHA Is Typing*");
         //Query API
         using var httpClient = new HttpClient();
         using var request = new HttpRequestMessage(new HttpMethod("POST"), "https://api.novelai.net/ai/generate");
@@ -40,6 +41,6 @@ public class AIChatCmd : InteractionModuleBase
         //Get the first line and if it contains an : then get the second half
         var firstLine = output.Split("\\n")[0];
         output = firstLine.Contains(":") ? firstLine.Split(":")[1] : firstLine;
-        await ModifyOriginalResponseAsync(properties => properties.Content = output);
+        await ReplyAsync(output);
     }
 }
