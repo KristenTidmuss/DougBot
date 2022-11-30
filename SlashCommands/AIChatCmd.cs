@@ -13,7 +13,6 @@ public class AIChatCmd : InteractionModuleBase
     public async Task AIChat()
     {
         await RespondAsync("Processing Chat", ephemeral: true);
-
         var blockedChars = "/#?&=;+!@£$%^*(){}[]|<>,~`\"'";
         //Get chat to send
         var messages = await Context.Channel.GetMessagesAsync(10).FlattenAsync();
@@ -39,8 +38,15 @@ public class AIChatCmd : InteractionModuleBase
         dynamic json = JToken.Parse(responseString);
         string output = json.output;
         //Get the first line and if it contains an : then get the second half
-        var firstLine = output.Split("\\n")[0];
-        output = firstLine.Contains(":") ? firstLine.Split(":")[1] : firstLine;
-        await ReplyAsync(output);
+        if (output != null)
+        {
+            var firstLine = output.Split("\\n")[0];
+            output = firstLine.Contains(":") ? firstLine.Split(":")[1] : firstLine;
+            await ReplyAsync(output);
+        }
+        else
+        {
+            throw new Exception("No output from API");
+        }
     }
 }

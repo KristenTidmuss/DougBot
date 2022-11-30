@@ -66,7 +66,17 @@ public class Program
                 {
                     await context.Interaction.RespondAsync("Invalid time format. Please use the format `12:00 GMT ` or `01 Jan 2022 12:00 GMT`", ephemeral: true);
                 }
-                await context.Interaction.RespondAsync(result.ErrorReason, ephemeral: true);
+                else
+                {
+                    if (!context.Interaction.HasResponded)
+                    {
+                        await context.Interaction.RespondAsync($"Error: {result.ErrorReason}", ephemeral: true);
+                    }
+                    else
+                    {
+                        await context.Interaction.ModifyOriginalResponseAsync(m => m.Content = $"Error: {result.ErrorReason}");
+                    }
+                }
             }
         };
         //Status
