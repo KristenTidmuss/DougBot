@@ -55,7 +55,8 @@ public class ReactionFilter
                 {
                     //Get reactions on the message contained in guildEmotes or filterEmotes
                     var reactions = message.Reactions
-                        .Where(r => !guildEmoteNames.Contains(r.Key.Name) && !filterEmotes.Contains(r.Key.Name));
+                        .Where(r => !guildEmoteNames.Contains(r.Key.Name) && !filterEmotes.Contains(r.Key.Name))
+                        .DistinctBy(r => r.Key.Name);
                     //remove those reactions from the message
                     foreach (var react in reactions)
                     {
