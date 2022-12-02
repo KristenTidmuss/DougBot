@@ -27,6 +27,7 @@ public class FrankAttach : InteractionModuleBase
                     // Download the Web resource and save it into the current filesystem folder.
                     myWebClient.DownloadFile(file, Path.combine("./FileStorage/", fileName));        
                 }
+            myWebClient.Dispose();
             fileName = name + ext;
         }
         else //file exists, pull from FileStorage
