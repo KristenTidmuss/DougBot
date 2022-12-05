@@ -52,6 +52,7 @@ public class Scheduler
         var guild = _Client.GetGuild(guidID);
         var user = guild.GetUser(userID);
         var role = guild.GetRole(roleID);
+        if(user == null){return;}
         await user.RemoveRoleAsync(role);
     }
 }
