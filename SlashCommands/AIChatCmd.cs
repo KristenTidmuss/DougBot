@@ -1,7 +1,9 @@
-using System.Net.Http.Headers;
 using Discord;
 using Discord.Interactions;
-using Newtonsoft.Json.Linq;
+using DougBot.Models;
+using OpenAI.GPT3;
+using OpenAI.GPT3.Managers;
+using OpenAI.GPT3.ObjectModels.RequestModels;
 
 namespace DougBot.SlashCommands;
 
@@ -10,43 +12,72 @@ public class AIChatCmd : InteractionModuleBase
     [SlashCommand("aichat", "Send an AI message into chat")]
     [EnabledInDm(false)]
     [DefaultMemberPermissions(GuildPermission.ModerateMembers)]
-    public async Task AIChat()
+    public async Task AIChat([Summary(description: "Messages to process (Default: 5)"), MaxValue(100)] int procCount = 5)
     {
         await RespondAsync("Processing Chat", ephemeral: true);
-        var blockedChars = "/#?&=;+!@£$%^*(){}[]|<>,~`\"'";
+        var settings = Setting.GetSettings();
         //Get chat to send
-        var messages = await Context.Channel.GetMessagesAsync(30).FlattenAsync();
-        var queryString = "This is a discord chat conversation\\n";
+        var messages = await Context.Channel.GetMessagesAsync(procCount).FlattenAsync();
+        var queryString = "WAHAHA is a chatbot that reluctantly takes part in chat with sarcastic responses:\n\n";
         //Ignore embeds and media
-        foreach (var message in messages.Where(m => m.Embeds.Count == 0 && m.Attachments.Count == 0).OrderBy(m => m.Timestamp))
+        messages = messages.Where(m =>
+            m.Embeds.Count == 0 &&
+            m.Attachments.Count == 0 &&
+            !m.Content.StartsWith("<") && !m.Content.EndsWith(">")
+        ).OrderBy(m => m.Timestamp);
+        //Process all messages
+        foreach (var message in messages)
         {
-            //replace any instance of blockedChars in message.content
-            var content = blockedChars.Aggregate(message.Content, (current, c) => current.Replace(c, ' '));
-            //If hits the char limit then stop
-            if(queryString.Length + content.Length > 2000) {break;}
-            queryString += content + "\\n";
+            queryString += $"{message.Author.Username}: {message.Content}\n";
         }
-        //Query API
-        using var httpClient = new HttpClient();
-        using var request = new HttpRequestMessage(new HttpMethod("POST"), "https://api.novelai.net/ai/generate");
-        request.Headers.TryAddWithoutValidation("accept", "application/json");
-        request.Content = new StringContent("{\n  \"input\": \"" + queryString +
-                                            "\",\n  \"model\": \"euterpe-v2\",\n  \"parameters\": {\n    \"use_string\": true,\n    \"temperature\": 1,\n    \"min_length\": 10,\n    \"max_length\": 30\n  }\n}");
-        request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-        var response = await httpClient.SendAsync(request);
-        var responseString = await response.Content.ReadAsStringAsync();
-        dynamic json = JToken.Parse(responseString);
-        string output = json.output;
-        //Get the first line and if it contains an : then get the second half
-        if (output != null)
+        queryString += "WAHAHA: ";
+        //Query API for chat response
+        var openAiService = new OpenAIService(new OpenAiOptions()
         {
-            var firstLine = output.Split("\\n")[0];
-            output = firstLine.Contains(":") ? firstLine.Split(":")[1] : firstLine;
-            await ReplyAsync(output);
+            ApiKey = settings.OpenAiToken
+        });
+        var completionResult = await openAiService.Completions.CreateCompletion(new CompletionCreateRequest
+        {
+            Prompt = queryString,
+            MaxTokens = 30,
+            Temperature = (float)0.5,
+            TopP = 1,
+            PresencePenalty = (float)0.0,
+            FrequencyPenalty = (float)0.5,
+            Stop = "\n"
+        }, OpenAI.GPT3.ObjectModels.Models.Davinci);
+        if (!completionResult.Successful)
+        {
+            throw new Exception("API Error: " + completionResult.Error);
+        }
+        var aiText = completionResult.Choices.FirstOrDefault().Text;
+        //check the response is not offensive using the OpenAI moderation API
+        var moderationResult = await openAiService.Moderation.CreateModeration(new CreateModerationRequest
+        {
+            Input = aiText
+        });
+        if (!moderationResult.Successful)
+        {
+            throw new Exception("API Error: " + moderationResult.Error);
+        }
+        //calculate cost
+        var cost = completionResult.Usage.TotalTokens * 0.00002;
+        //Respond
+        if (moderationResult.Results.Any(r => !r.Flagged))
+        {
+            await ReplyAsync(aiText);
+            await ModifyOriginalResponseAsync(m =>
+                m.Content = $"Message sent\n" +
+                            $"Tokens: Input {completionResult.Usage.PromptTokens} + Output {completionResult.Usage.CompletionTokens} = {completionResult.Usage.TotalTokens}\n" +
+                            $"Cost: ${cost}");
         }
         else
         {
-            throw new Exception("No output from API");
+            await ModifyOriginalResponseAsync(m =>
+                m.Content = $"Message failed to pass content moderation\n" +
+                            $"Tokens: Input {completionResult.Usage.PromptTokens} + Output {completionResult.Usage.CompletionTokens} = {completionResult.Usage.TotalTokens}\n" +
+                            $"Cost: ${cost}\n" +
+                            $"Response: {aiText}");
         }
     }
 }

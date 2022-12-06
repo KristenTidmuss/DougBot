@@ -12,6 +12,7 @@ public class Setting
     public string YoutubePostChannel { get; set; }
     public string YoutubeChannels { get; set; }
     public DateTime YoutubeLastCheck { get; set; }
+    public string OpenAiToken { get; set; }
 
     public static Setting GetSettings()
     {
