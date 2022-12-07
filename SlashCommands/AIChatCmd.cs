@@ -63,7 +63,7 @@ public class AIChatCmd : InteractionModuleBase
         //calculate cost
         var cost = completionResult.Usage.TotalTokens * 0.00002;
         //Respond
-        if (moderationResult.Results.Any(r => !r.Flagged))
+        if (moderationResult.Results.Any(r => !r.Flagged) && aiText != "")
         {
             await ReplyAsync(aiText);
             await ModifyOriginalResponseAsync(m =>
