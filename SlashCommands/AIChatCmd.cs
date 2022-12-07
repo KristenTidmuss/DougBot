@@ -45,7 +45,7 @@ public class AIChatCmd : InteractionModuleBase
             PresencePenalty = (float)0.0,
             FrequencyPenalty = (float)0.5,
             Stop = "\n"
-        }, OpenAI.GPT3.ObjectModels.Models.Davinci);
+        }, OpenAI.GPT3.ObjectModels.Models.Curie);
         if (!completionResult.Successful)
         {
             throw new Exception("API Error: " + completionResult.Error);
@@ -61,7 +61,7 @@ public class AIChatCmd : InteractionModuleBase
             throw new Exception("API Error: " + moderationResult.Error);
         }
         //calculate cost
-        var cost = completionResult.Usage.TotalTokens * 0.00002;
+        var cost = completionResult.Usage.TotalTokens * 0.000002;
         //Respond
         if (moderationResult.Results.Any(r => !r.Flagged) && aiText != "")
         {
