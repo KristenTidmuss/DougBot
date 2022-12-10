@@ -21,6 +21,7 @@ public class Youtube
         };
         timer.Elapsed += CheckUploads;
         Console.WriteLine("Youtube System Initialized");
+        CheckUploads(null,null);
     }
 
     private async void CheckUploads(object? sender, ElapsedEventArgs elapsedEventArgs)
@@ -31,6 +32,7 @@ public class Youtube
             var settings = Setting.GetSettings();
             var channels = settings.YoutubeChannels.Split(Environment.NewLine);
             var youtube = new YoutubeClient();
+            var pinged = false;
             foreach (var channel in channels)
             {
                 var channelMention = channel.Split(';')[0];
@@ -43,7 +45,7 @@ public class Youtube
                 {
                     var embed = new EmbedBuilder()
                         .WithAuthor(ytChannel.Title, ytChannel.Thumbnails[0].Url, ytChannel.Url)
-                        .WithTitle("New video from " + channelMention)
+                        .WithTitle(video.Title)
                         .WithImageUrl(video.Thumbnails.OrderBy(t => t.Resolution.Area).Last().Url)
                         .WithUrl(video.Url)
                         .Build();
@@ -51,10 +53,14 @@ public class Youtube
                     var discChannel = guild.GetTextChannel(Convert.ToUInt64(settings.YoutubePostChannel));
                     await discChannel.SendMessageAsync($"<@&{pingRole}>", embeds: new[] { embed },
                         allowedMentions: AllowedMentions.All);
+                    pinged = true;
                 }
             }
             await _Client.SetStatusAsync(UserStatus.DoNotDisturb);
-            Setting.UpdateLastChecked(DateTime.UtcNow);
+            if (pinged)
+            {
+                Setting.UpdateLastChecked(DateTime.UtcNow);
+            }
         }
         catch (Exception ex)
         {
