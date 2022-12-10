@@ -12,13 +12,14 @@ public class AIChatCmd : InteractionModuleBase
     [SlashCommand("aichat", "Send an AI message into chat")]
     [EnabledInDm(false)]
     [DefaultMemberPermissions(GuildPermission.ModerateMembers)]
-    public async Task AIChat([Summary(description: "Messages to process (Default: 5)"), MaxValue(100)] int procCount = 5)
+    public async Task AIChat([Summary(description: "Messages to process (Default: 15)"), MaxValue(500)] int procCount = 15,
+        [Summary(description: "Pretext given to the bot")] string pretext = "")
     {
         await RespondAsync("Processing Chat", ephemeral: true);
         var settings = Setting.GetSettings();
         //Get chat to send
         var messages = await Context.Channel.GetMessagesAsync(procCount).FlattenAsync();
-        var queryString = "WAHAHA is a chatbot that reluctantly takes part in chat with sarcastic responses:\n\n";
+        var queryString = pretext+"\n";
         //Ignore embeds and media
         messages = messages.Where(m =>
             m.Embeds.Count == 0 &&
@@ -28,9 +29,9 @@ public class AIChatCmd : InteractionModuleBase
         //Process all messages
         foreach (var message in messages)
         {
-            queryString += $"{message.Author.Username}: {message.Content}\n";
+            queryString += $"Friend: {message.Content}\n";
         }
-        queryString += "WAHAHA: ";
+        queryString += "You: ";
         //Query API for chat response
         var openAiService = new OpenAIService(new OpenAiOptions()
         {
