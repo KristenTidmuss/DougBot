@@ -21,7 +21,6 @@ public class Youtube
         };
         timer.Elapsed += CheckUploads;
         Console.WriteLine("Youtube System Initialized");
-        CheckUploads(null,null);
     }
 
     private async void CheckUploads(object? sender, ElapsedEventArgs elapsedEventArgs)
