@@ -11,9 +11,17 @@ public class ReactionFilter
     public ReactionFilter(DiscordSocketClient client)
     {
         client.ReactionAdded += HandleReactionAdded;
+        Console.WriteLine("Reaction Filter System Initialized");
     }
 
-    private async Task HandleReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+    private async Task HandleReactionAdded(Cacheable<IUserMessage, ulong> message,
+        Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+    {
+        Task.Run(() => Filter(message, channel, reaction));
+    }
+
+
+    private async Task Filter(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
     {
         try
         {
