@@ -85,6 +85,10 @@ public class Scheduler
                 {
                     await thread.ModifyAsync(t => t.Archived = true);
                 }
+                else if (!message.Any() && thread.CreatedAt.UtcDateTime < DateTime.UtcNow.AddDays(-2))
+                {
+                    await thread.ModifyAsync(t => t.Archived = true);
+                }
             }
         }
     }
