@@ -10,6 +10,10 @@ public class Database
         public DbSet<Queue> Queues { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseNpgsql("Host=192.168.1.252;Database=DougBot;Username=postgres;Password=88PVVel6QHqk");
+        {
+            var host = Environment.GetEnvironmentVariable("DATABASE_HOST");
+            var password = Environment.GetEnvironmentVariable("DATABASE_PASSWORD");
+            optionsBuilder.UseNpgsql($"Host={host};Database=DougBot;Username=postgres;Password={password}");
+        }
     }
 }
