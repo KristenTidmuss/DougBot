@@ -15,4 +15,8 @@
         <PackageReference Include="YoutubeExplode" Version="6.2.4" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Content Include=".github\workflows\publish.yml" />
+    </ItemGroup>
+
 </Project>
