@@ -45,8 +45,7 @@ public class Program
             _FirstStart = false;
             //Register Plugins
             var reactionFilter = new ReactionFilter(_Client);
-            var youtube = new Youtube(_Client);
-            var scheduler = new Scheduler(_Client);
+            var scheduler = new Scheduler.Schedule(_Client);
             //Register Commands
             _Service = new InteractionService(_Client.Rest);
             _Service.Log += Log;

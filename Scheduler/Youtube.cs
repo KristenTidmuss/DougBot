@@ -1,33 +1,17 @@
-using System.Timers;
 using Discord;
 using Discord.WebSocket;
 using DougBot.Models;
 using YoutubeExplode;
 using YoutubeExplode.Common;
 
-namespace DougBot.Systems;
+namespace DougBot.Scheduler;
 
-public class Youtube
+public static class Youtube
 {
-    private readonly DiscordSocketClient _Client;
-
-    public Youtube(DiscordSocketClient client)
-    {
-        _Client = client;
-        var timer = new System.Timers.Timer
-        {
-            Interval = 600000,
-            Enabled = true
-        };
-        timer.Elapsed += CheckUploads;
-        Console.WriteLine("Youtube System Initialized");
-    }
-
-    private async void CheckUploads(object? sender, ElapsedEventArgs elapsedEventArgs)
+    public static async Task CheckYoutube (DiscordSocketClient client)
     {
         try
         {
-            await _Client.SetStatusAsync(UserStatus.Idle);
             var settings = Setting.GetSettings();
             var channels = settings.YoutubeChannels.Split(Environment.NewLine);
             var youtube = new YoutubeClient();
@@ -48,14 +32,13 @@ public class Youtube
                         .WithImageUrl(video.Thumbnails.OrderBy(t => t.Resolution.Area).Last().Url)
                         .WithUrl(video.Url)
                         .Build();
-                    var guild = _Client.GetGuild(Convert.ToUInt64(settings.guildID));
+                    var guild = client.GetGuild(Convert.ToUInt64(settings.guildID));
                     var discChannel = guild.GetTextChannel(Convert.ToUInt64(settings.YoutubePostChannel));
                     await discChannel.SendMessageAsync($"<@&{pingRole}>", embeds: new[] { embed },
                         allowedMentions: AllowedMentions.All);
                     pinged = true;
                 }
             }
-            await _Client.SetStatusAsync(UserStatus.DoNotDisturb);
             if (pinged)
             {
                 Setting.UpdateLastChecked(DateTime.UtcNow);

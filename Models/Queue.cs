@@ -4,17 +4,19 @@ public class Queue
 {
     public int Id { get; set; }
     public string Type { get; set; }
-    public string Data { get; set; }
+    public string? Data { get; set; }
+    public string? Keys { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime DueAt { get; set; }
 
-    public static void Create(string type, string data, DateTime dueAt)
+    public static void Create(string type, string data, string keys, DateTime dueAt)
     {
         using var db = new Database.DougBotContext();
         db.Queues.Add(new Queue
         {
             Type = type,
             Data = data,
+            Keys = keys,
             CreatedAt = DateTime.UtcNow,
             DueAt = dueAt
         });
