@@ -9,7 +9,7 @@ public class TypingCmd : InteractionModuleBase
     [EnabledInDm(false)]
     [DefaultMemberPermissions(GuildPermission.ModerateMembers)]
     public async Task Typing([Summary(description: "Channel to type in")] ITextChannel channel,
-        [Summary(description: "Amount of seconds to type")]
+        [Summary(description: "Amount of seconds to type"), MaxValue(300)]
         int seconds)
     {
         await RespondAsync($"Beginning typing for {seconds} seconds in {channel.Mention} ", ephemeral: true);
