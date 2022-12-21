@@ -11,11 +11,11 @@ public class AIChatCmd : InteractionModuleBase
 {
     [SlashCommand("aichat", "Send an AI message into chat")]
     [EnabledInDm(false)]
-    [DefaultMemberPermissions(GuildPermission.ModerateMembers)]
+    [DefaultMemberPermissions(GuildPermission.Administrator)]
     public async Task AIChat([Summary(description: "Messages to process (Default: 15)"), MaxValue(500)] int procCount = 15,
         [Summary(description: "Pretext given to the bot")] string pretext = "")
     {
-        await RespondAsync("Processing Chat", ephemeral: true);
+        await RespondAsync("Command received", ephemeral: true);
         var settings = Setting.GetSettings();
         //Get chat to send
         var messages = await Context.Channel.GetMessagesAsync(procCount).FlattenAsync();
@@ -32,6 +32,7 @@ public class AIChatCmd : InteractionModuleBase
             queryString += $"Friend: {message.Content}\n";
         }
         queryString += "You: ";
+        await ModifyOriginalResponseAsync(r => r.Content += "\nMessages loaded, Querying APi");
         //Query API for chat response
         var openAiService = new OpenAIService(new OpenAiOptions()
         {
@@ -52,6 +53,7 @@ public class AIChatCmd : InteractionModuleBase
             throw new Exception("API Error: " + completionResult.Error);
         }
         var aiText = completionResult.Choices.FirstOrDefault().Text;
+        await ModifyOriginalResponseAsync(r => r.Content += "\nResponse received, moderating content");
         //check the response is not offensive using the OpenAI moderation API
         var moderationResult = await openAiService.Moderation.CreateModeration(new CreateModerationRequest
         {
@@ -61,6 +63,7 @@ public class AIChatCmd : InteractionModuleBase
         {
             throw new Exception("API Error: " + moderationResult.Error);
         }
+        await ModifyOriginalResponseAsync(r => r.Content += "\nModeration complete");
         //calculate cost
         var cost = completionResult.Usage.TotalTokens * 0.000002;
         //Respond
@@ -68,14 +71,14 @@ public class AIChatCmd : InteractionModuleBase
         {
             await ReplyAsync(aiText);
             await ModifyOriginalResponseAsync(m =>
-                m.Content = $"Message sent\n" +
+                m.Content += $"\nMessage sent\n" +
                             $"Tokens: Input {completionResult.Usage.PromptTokens} + Output {completionResult.Usage.CompletionTokens} = {completionResult.Usage.TotalTokens}\n" +
                             $"Cost: ${cost}");
         }
         else
         {
             await ModifyOriginalResponseAsync(m =>
-                m.Content = $"Message failed to pass content moderation\n" +
+                m.Content += $"\nMessage failed to pass content moderation\n" +
                             $"Tokens: Input {completionResult.Usage.PromptTokens} + Output {completionResult.Usage.CompletionTokens} = {completionResult.Usage.TotalTokens}\n" +
                             $"Cost: ${cost}\n" +
                             $"Response: {aiText}");
