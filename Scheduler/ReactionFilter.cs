@@ -2,7 +2,7 @@ using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 using DougBot.Models;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace DougBot.Scheduler;
 
@@ -42,7 +42,7 @@ public static class ReactionFilter
                             { "messageId", message.Id.ToString() },
                             { "emoteName", reaction.Key.Name }
                         };
-                        json = JsonConvert.SerializeObject(dict);
+                        json = JsonSerializer.Serialize(dict);
                         Queue.Create("RemoveReaction", null, json, DateTime.UtcNow);
                         //Punish users
                         foreach (RestUser user in users)
@@ -56,7 +56,7 @@ public static class ReactionFilter
                                 { "userId", user.Id.ToString() },
                                 { "roleId", settings.reactionFilterRole }
                             };
-                            json = JsonConvert.SerializeObject(dict);
+                            json = JsonSerializer.Serialize(dict);
                             Queue.Create("AddRole", null, json, DateTime.UtcNow);
                             Queue.Create("RemoveRole", null, json, DateTime.UtcNow.AddMinutes(10));
                         }

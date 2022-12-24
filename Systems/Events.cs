@@ -2,7 +2,7 @@ using Discord;
 using Discord.WebSocket;
 using DougBot.Models;
 using Fernandezja.ColorHashSharp;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace DougBot.Systems;
 
@@ -40,9 +40,9 @@ public class Events
                 { "guildId", settings.guildID },
                 { "channelId", settings.dmReceiptChannel },
                 { "message", "" },
-                { "embedBuilders", JsonConvert.SerializeObject(embeds) }
+                { "embedBuilders", JsonSerializer.Serialize(embeds) }
             };
-            var json = JsonConvert.SerializeObject(dict);
+            var json = JsonSerializer.Serialize(dict);
             Queue.Create("SendMessage", null, json, DateTime.UtcNow);
         }
     }

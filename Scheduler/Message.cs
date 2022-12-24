@@ -1,7 +1,7 @@
 using Discord;
 using Discord.WebSocket;
 using DougBot.Models;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace DougBot.Scheduler;
 
@@ -13,7 +13,7 @@ public static class Message
         var guild = client.GetGuild(guidID);
         var channel = guild.Channels.FirstOrDefault(x => x.Id == channelId) as SocketTextChannel;
         var embeds = new List<Embed>();
-        foreach (var embed in JsonConvert.DeserializeObject<List<EmbedBuilder>>(embedBuilders))
+        foreach (var embed in JsonSerializer.Deserialize<List<EmbedBuilder>>(embedBuilders))
             embeds.Add(embed.Build());
         await channel.SendMessageAsync(message, false, embeds: embeds.ToArray());
     }
@@ -25,7 +25,7 @@ public static class Message
         var channel = guild.Channels.FirstOrDefault(c => c.Id.ToString() == settings.dmReceiptChannel) as SocketTextChannel;
         var user = await client.GetUserAsync(userId);
         //Send user DM
-        var embeds = JsonConvert.DeserializeObject<List<EmbedBuilder>>(embedBuilders).Select(embed => embed.Build()).ToList();
+        var embeds = JsonSerializer.Deserialize<List<EmbedBuilder>>(embedBuilders).Select(embed => embed.Build()).ToList();
         var Status = "";
         var color = (Color)embeds[0].Color;
         try
@@ -43,7 +43,7 @@ public static class Message
             color = Color.Red;
         }
         //Send status to mod channel
-        embeds = JsonConvert.DeserializeObject<List<EmbedBuilder>>(embedBuilders).Select(embed => 
+        embeds = JsonSerializer.Deserialize<List<EmbedBuilder>>(embedBuilders).Select(embed => 
             embed.WithTitle(Status).WithColor(color).WithAuthor($"DM to {user.Username}#{user.Discriminator} ({user.Id})").Build()).ToList();
         await channel.SendMessageAsync(embeds: embeds.ToArray());
     }

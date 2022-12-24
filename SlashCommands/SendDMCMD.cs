@@ -1,7 +1,7 @@
 using Discord;
 using Discord.Interactions;
 using DougBot.Models;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace DougBot.SlashCommands;
 
@@ -30,9 +30,9 @@ public class SendDMCMD : InteractionModuleBase
         var dict = new Dictionary<string, string>
         {
             { "userId", user.Id.ToString() },
-            { "embedBuilders", JsonConvert.SerializeObject(embeds) }
+            { "embedBuilders", JsonSerializer.Serialize(embeds) }
         };
-        var json = JsonConvert.SerializeObject(dict);
+        var json = JsonSerializer.Serialize(dict);
         Queue.Create("SendDM", null, json, DateTime.UtcNow);
         await RespondAsync($"DM queued, check <#{settings.dmReceiptChannel}>", ephemeral: true);
     }

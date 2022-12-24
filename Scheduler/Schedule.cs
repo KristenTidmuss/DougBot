@@ -1,8 +1,6 @@
-using System.Timers;
 using Discord.WebSocket;
 using DougBot.Models;
-using Newtonsoft.Json;
-using Timer = System.Timers.Timer;
+using System.Text.Json;
 
 namespace DougBot.Scheduler;
 
@@ -53,7 +51,7 @@ public class Schedule
                     await Task.Delay(100);
                     var param = new Dictionary<string, string>();
                     if (queue.Keys != null)
-                        param = JsonConvert.DeserializeObject<Dictionary<string, string>>(queue.Keys);
+                        param = JsonSerializer.Deserialize<Dictionary<string, string>>(queue.Keys);
 
                     switch (queue.Type)
                     {
