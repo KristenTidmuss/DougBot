@@ -24,6 +24,8 @@ public class SendDMCMD : InteractionModuleBase
                     .WithName(Context.Guild.Name + " Mods")
                     .WithIconUrl(Context.Guild.IconUrl))
                 .WithCurrentTimestamp()
+                .WithFooter(new EmbedFooterBuilder()
+                    .WithText("Any replies to this DM will be sent to the mod team"))
         };
         var dict = new Dictionary<string, string>
         {
