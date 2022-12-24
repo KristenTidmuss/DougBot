@@ -8,7 +8,7 @@ namespace DougBot.Scheduler;
 
 public static class Youtube
 {
-    public static async Task CheckYoutube (DiscordSocketClient client)
+    public static async Task CheckYoutube(DiscordSocketClient client)
     {
         try
         {
@@ -39,10 +39,8 @@ public static class Youtube
                     pinged = true;
                 }
             }
-            if (pinged)
-            {
-                Setting.UpdateLastChecked(DateTime.UtcNow);
-            }
+
+            if (pinged) Setting.UpdateLastChecked(DateTime.UtcNow);
         }
         catch (Exception ex)
         {

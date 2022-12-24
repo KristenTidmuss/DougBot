@@ -20,14 +20,10 @@ public static class Forums
             foreach (var thread in forumThreads)
             {
                 var message = await thread.GetMessagesAsync(1).FlattenAsync();
-                if(message.First().Timestamp.UtcDateTime < DateTime.UtcNow.AddDays(-2))
-                {
+                if (message.First().Timestamp.UtcDateTime < DateTime.UtcNow.AddDays(-2))
                     await thread.ModifyAsync(t => t.Archived = true);
-                }
                 else if (!message.Any() && thread.CreatedAt.UtcDateTime < DateTime.UtcNow.AddDays(-2))
-                {
                     await thread.ModifyAsync(t => t.Archived = true);
-                }
             }
         }
     }

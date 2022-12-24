@@ -11,6 +11,7 @@ public static class Role
         var role = guild.GetRole(roleID);
         await user?.RemoveRoleAsync(role);
     }
+
     public static async Task Add(DiscordSocketClient client, ulong guidID, ulong userID, ulong roleID)
     {
         var guild = client.GetGuild(guidID);

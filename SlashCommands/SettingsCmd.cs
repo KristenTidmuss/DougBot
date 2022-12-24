@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Discord;
 using Discord.Interactions;
+using Discord.WebSocket;
 using DougBot.Modals;
 using DougBot.Models;
 
@@ -12,7 +13,10 @@ public class SettingsCmd : InteractionModuleBase
     [EnabledInDm(false)]
     [DefaultMemberPermissions(GuildPermission.ModerateMembers)]
     public async Task settings(
-        [Choice("Reaction Filter", "reactionFilter")] [Choice("Youtube Feed", "youtubeFeed")] [Choice("Dump", "dump")]
+        [Choice("Reaction Filter", "reactionFilter")]
+        [Choice("Youtube Feed", "youtubeFeed")]
+        [Choice("Dump", "dump")]
+        [Choice("Admin", "admin")]
         string choice)
     {
         var settings = Setting.GetSettings();
@@ -36,6 +40,19 @@ public class SettingsCmd : InteractionModuleBase
                     .ConfigureAwait(false);
                 break;
             }
+            case "admin":
+                var user = (SocketGuildUser)Context.User;
+                if (user.GuildPermissions.Administrator)
+                {
+                    await Context.Interaction.RespondWithModalAsync<AdminModal>("settingsAdmin", null, x => x
+                            .UpdateTextInput("dmReceiptChannel", x => x.Value = settings.dmReceiptChannel)
+                            .UpdateTextInput("OpenAiToken", x => x.Value = settings.OpenAiToken))
+                        .ConfigureAwait(false);
+                    break;
+                }
+
+                RespondAsync("Access denied", ephemeral: true);
+                break;
             case "dump":
             {
                 //Settings

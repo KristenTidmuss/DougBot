@@ -1,5 +1,4 @@
 using System.Timers;
-using Discord;
 using Discord.WebSocket;
 using DougBot.Models;
 using Newtonsoft.Json;
@@ -10,92 +9,103 @@ namespace DougBot.Scheduler;
 public class Schedule
 {
     private readonly DiscordSocketClient _Client;
-    private bool _IsRunning;
-    private Timer _TimerMain = new Timer
-    {
-        Interval = 5000,
-        Enabled = true
-    };
-    private Timer _TimerLong = new Timer
-    {
-        Interval = 1800000,
-        Enabled = true
-    };
 
     public Schedule(DiscordSocketClient client)
     {
         _Client = client;
-        //Main Queue
-        _TimerMain.Elapsed += MainQueue;
-        //Infrequent Tasks
-        _TimerLong.Elapsed += Hour;
+        MainQueue();
+        Long();
         Console.WriteLine("Scheduler System Initialized");
     }
 
-    private static void Hour(object? sender, ElapsedEventArgs e)
+    private async Task Long()
     {
-        Queue.Create("Youtube", null,null, DateTime.UtcNow);
-        Queue.Create("Forum", null,null, DateTime.UtcNow);
-        Queue.Create("Freshmen", null,null, DateTime.UtcNow);
+        while (true)
+        {
+            try
+            {
+                await Task.Delay(900000);
+                ReactionFilter.Filter(_Client, 100);
+                Queue.Create("Youtube", null, null, DateTime.UtcNow);
+                Queue.Create("Forum", null, null, DateTime.UtcNow);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
     }
 
-    private async void MainQueue(object? sender, ElapsedEventArgs e)
+    private async Task MainQueue()
     {
-        _TimerMain.Enabled = false;
-        try
+        while (true)
         {
-            var settings = Setting.GetSettings();
-            var pendingQueues = Queue.GetDue();
-            //Run items 
-            Parallel.ForEach(pendingQueues, queue =>
+            try
             {
-                var param = new Dictionary<string, string>();
-                if (queue.Keys != null)
+                await Task.Delay(1000);
+                //Scheduled jobs
+                await ReactionFilter.Filter(_Client, 5);
+                //Load Queue
+                var pendingQueues = Queue.GetDue();
+                //Run items 
+                foreach (var queue in pendingQueues)
                 {
-                    param = JsonConvert.DeserializeObject<Dictionary<string, string>>(queue.Keys);
-                }
+                    await Task.Delay(100);
+                    var param = new Dictionary<string, string>();
+                    if (queue.Keys != null)
+                        param = JsonConvert.DeserializeObject<Dictionary<string, string>>(queue.Keys);
 
-                switch (queue.Type)
-                {
-                    case "Forum":
-                        Forums.Clean(_Client);
-                        break;
-                    case "Youtube":
-                        Youtube.CheckYoutube(_Client);
-                        break;
-                    case "Freshmen":
-                        Freshmen.CheckFreshmen(_Client);
-                        break;
-                    case "RemoveRole":
-                        Role.Remove(_Client,
-                            ulong.Parse(param["guildId"]),
-                            ulong.Parse(param["userId"]),
-                            ulong.Parse(param["roleId"]));
-                        break;
-                    case "AddRole":
-                        Role.Add(_Client,
-                            ulong.Parse(param["guildId"]),
-                            ulong.Parse(param["userId"]),
-                            ulong.Parse(param["roleId"]));
-                        break;
-                    case "RemoveReaction":
-                        Reaction.Remove(_Client, 
-                            ulong.Parse(param["guildId"]),
-                            ulong.Parse(param["channelId"]),
-                            ulong.Parse(param["messageId"]),
-                            param["emoteName"]);
-                        break;
-                    case "SetStatus":
-                        _Client.SetGameAsync(queue.Data);
-                        break;
+                    switch (queue.Type)
+                    {
+                        case "Forum":
+                            await Forums.Clean(_Client);
+                            break;
+                        case "Youtube":
+                            await Youtube.CheckYoutube(_Client);
+                            break;
+                        case "RemoveRole":
+                            await Role.Remove(_Client,
+                                ulong.Parse(param["guildId"]),
+                                ulong.Parse(param["userId"]),
+                                ulong.Parse(param["roleId"]));
+                            break;
+                        case "AddRole":
+                            await Role.Add(_Client,
+                                ulong.Parse(param["guildId"]),
+                                ulong.Parse(param["userId"]),
+                                ulong.Parse(param["roleId"]));
+                            break;
+                        case "RemoveReaction":
+                            await Reaction.Remove(_Client,
+                                ulong.Parse(param["guildId"]),
+                                ulong.Parse(param["channelId"]),
+                                ulong.Parse(param["messageId"]),
+                                param["emoteName"]);
+                            break;
+                        case "SendMessage":
+                            await Message.Send(_Client,
+                                ulong.Parse(param["guildId"]),
+                                ulong.Parse(param["channelId"]),
+                                param["message"],
+                                param["embedBuilders"]);
+                            break;
+                            case "SendDM":
+                            await Message.SendDM(_Client,
+                                ulong.Parse(param["userId"]),
+                                param["embedBuilders"]);
+                            break;
+                        case "SetStatus":
+                            await _Client.SetGameAsync(queue.Data);
+                            break;
+                    }
+
+                    await Queue.Remove(queue);
                 }
-                Queue.Remove(queue);
-            });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-        }
-        _TimerMain.Enabled = true;
     }
 }
