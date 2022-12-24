@@ -18,8 +18,9 @@ public class Events
 
     private async Task MessageReceivedHandler(SocketMessage message)
     {
+        var auth = message.Author as SocketGroupUser;
         var settings = Setting.GetSettings();
-        if (message.Channel is SocketDMChannel && message.Author.Id != _Client.CurrentUser.Id)
+        if (message.Channel is SocketDMChannel && message.Author.MutualGuilds.Any() && message.Author.Id != _Client.CurrentUser.Id)
         {
             var embeds = new List<EmbedBuilder>();
             //Main embed
