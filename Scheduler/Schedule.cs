@@ -90,6 +90,7 @@ public class Schedule
                             case "SendDM":
                             await Message.SendDM(_Client,
                                 ulong.Parse(param["userId"]),
+                                ulong.Parse(param["SenderId"]),
                                 param["embedBuilders"]);
                             break;
                         case "SetStatus":

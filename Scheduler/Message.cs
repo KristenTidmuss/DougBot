@@ -18,12 +18,13 @@ public static class Message
         await channel.SendMessageAsync(message, false, embeds: embeds.ToArray());
     }
 
-    public static async Task SendDM(DiscordSocketClient client, ulong userId, string embedBuilders)
+    public static async Task SendDM(DiscordSocketClient client, ulong userId, ulong senderId, string embedBuilders)
     {
         var settings = Setting.GetSettings();
         var guild = client.Guilds.FirstOrDefault(g => g.Id.ToString() == settings.guildID);
         var channel = guild.Channels.FirstOrDefault(c => c.Id.ToString() == settings.dmReceiptChannel) as SocketTextChannel;
         var user = await client.GetUserAsync(userId);
+        var sender = await client.GetUserAsync(senderId);
         //Send user DM
         var embeds = JsonSerializer.Deserialize<List<EmbedBuilder>>(embedBuilders).Select(embed => embed.Build()).ToList();
         var Status = "";
@@ -44,7 +45,10 @@ public static class Message
         }
         //Send status to mod channel
         embeds = JsonSerializer.Deserialize<List<EmbedBuilder>>(embedBuilders).Select(embed => 
-            embed.WithTitle(Status).WithColor(color).WithAuthor($"DM to {user.Username}#{user.Discriminator} ({user.Id})").Build()).ToList();
+            embed.WithTitle(Status)
+                .WithColor(color)
+                .WithAuthor($"DM to {user.Username}#{user.Discriminator} ({user.Id}) from {sender.Username}", sender.GetAvatarUrl())
+                .Build()).ToList();
         await channel.SendMessageAsync(embeds: embeds.ToArray());
     }
 }

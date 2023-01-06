@@ -30,7 +30,8 @@ public class SendDMCMD : InteractionModuleBase
         var dict = new Dictionary<string, string>
         {
             { "userId", user.Id.ToString() },
-            { "embedBuilders", JsonSerializer.Serialize(embeds) }
+            { "embedBuilders", JsonSerializer.Serialize(embeds) },
+            { "SenderId", Context.User.Id.ToString() }
         };
         var json = JsonSerializer.Serialize(dict);
         Queue.Create("SendDM", null, json, DateTime.UtcNow);
