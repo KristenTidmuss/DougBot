@@ -48,57 +48,64 @@ public class Schedule
                 //Run items 
                 foreach (var queue in pendingQueues)
                 {
-                    await Task.Delay(100);
-                    var param = new Dictionary<string, string>();
-                    if (queue.Keys != null)
-                        param = JsonSerializer.Deserialize<Dictionary<string, string>>(queue.Keys);
-
-                    switch (queue.Type)
+                    try
                     {
-                        case "Forum":
-                            await Forums.Clean(_Client);
-                            break;
-                        case "Youtube":
-                            await Youtube.CheckYoutube(_Client);
-                            break;
-                        case "RemoveRole":
-                            await Role.Remove(_Client,
-                                ulong.Parse(param["guildId"]),
-                                ulong.Parse(param["userId"]),
-                                ulong.Parse(param["roleId"]));
-                            break;
-                        case "AddRole":
-                            await Role.Add(_Client,
-                                ulong.Parse(param["guildId"]),
-                                ulong.Parse(param["userId"]),
-                                ulong.Parse(param["roleId"]));
-                            break;
-                        case "RemoveReaction":
-                            await Reaction.Remove(_Client,
-                                ulong.Parse(param["guildId"]),
-                                ulong.Parse(param["channelId"]),
-                                ulong.Parse(param["messageId"]),
-                                param["emoteName"]);
-                            break;
-                        case "SendMessage":
-                            await Message.Send(_Client,
-                                ulong.Parse(param["guildId"]),
-                                ulong.Parse(param["channelId"]),
-                                param["message"],
-                                param["embedBuilders"]);
-                            break;
-                            case "SendDM":
-                            await Message.SendDM(_Client,
-                                ulong.Parse(param["userId"]),
-                                ulong.Parse(param["SenderId"]),
-                                param["embedBuilders"]);
-                            break;
-                        case "SetStatus":
-                            await _Client.SetGameAsync(queue.Data);
-                            break;
-                    }
+                        await Task.Delay(100);
+                        var param = new Dictionary<string, string>();
+                        if (queue.Keys != null)
+                            param = JsonSerializer.Deserialize<Dictionary<string, string>>(queue.Keys);
 
-                    await Queue.Remove(queue);
+                        switch (queue.Type)
+                        {
+                            case "Forum":
+                                await Forums.Clean(_Client);
+                                break;
+                            case "Youtube":
+                                await Youtube.CheckYoutube(_Client);
+                                break;
+                            case "RemoveRole":
+                                await Role.Remove(_Client,
+                                    ulong.Parse(param["guildId"]),
+                                    ulong.Parse(param["userId"]),
+                                    ulong.Parse(param["roleId"]));
+                                break;
+                            case "AddRole":
+                                await Role.Add(_Client,
+                                    ulong.Parse(param["guildId"]),
+                                    ulong.Parse(param["userId"]),
+                                    ulong.Parse(param["roleId"]));
+                                break;
+                            case "RemoveReaction":
+                                await Reaction.Remove(_Client,
+                                    ulong.Parse(param["guildId"]),
+                                    ulong.Parse(param["channelId"]),
+                                    ulong.Parse(param["messageId"]),
+                                    param["emoteName"]);
+                                break;
+                            case "SendMessage":
+                                await Message.Send(_Client,
+                                    ulong.Parse(param["guildId"]),
+                                    ulong.Parse(param["channelId"]),
+                                    param["message"],
+                                    param["embedBuilders"]);
+                                break;
+                            case "SendDM":
+                                await Message.SendDM(_Client,
+                                    ulong.Parse(param["userId"]),
+                                    ulong.Parse(param["SenderId"]),
+                                    param["embedBuilders"]);
+                                break;
+                            case "SetStatus":
+                                await _Client.SetGameAsync(queue.Data);
+                                break;
+                        }
+                        await Queue.Remove(queue);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                        throw;
+                    }
                 }
             }
             catch (Exception ex)
